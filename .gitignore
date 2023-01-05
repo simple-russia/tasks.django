@@ -1,0 +1,12 @@
+# scripts
+venv.cmd
+run.cmd
+
+# venv
+venv
+
+# sqlite
+tasks/db.sqlite3
+
+# cache
+*.pyc
