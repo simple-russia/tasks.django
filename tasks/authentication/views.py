@@ -1,4 +1,4 @@
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -40,8 +40,8 @@ def login_user(request):
 
 
 @api_view(['POST'])
-def logout():
-    # return user info too
+def logout_user():
+    logout()
     return Response('logout')
 
 
