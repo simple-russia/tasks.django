@@ -1,5 +1,5 @@
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
@@ -16,8 +16,6 @@ def ping(request):
 @swagger_auto_schema(request_body=serializers.LoginSerializer, methods=['POST'], responses={200: serializers.UserSerializer})
 @api_view(['POST'])
 def login_user(request):
-    print('req->', request, type(request), 'orig:', request._request, type(request._request))
-    # return user info too
     serializer = serializers.LoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     
@@ -29,7 +27,6 @@ def login_user(request):
     user = authenticate(username=username, password=password)
 
     if user is not None:
-        print(user)
         login(request, user)
     else:
         return Response('user not found', status=404)
@@ -39,9 +36,13 @@ def login_user(request):
     return Response(user_data)
 
 
+@swagger_auto_schema(methods=['POST'], responses={200: 'logout'})
 @api_view(['POST'])
-def logout_user():
-    logout()
+def logout_user(request):
+    if isinstance(request.user, AnonymousUser):
+        return Response('not authenticated', status=401)
+
+    logout(request)
     return Response('logout')
 
 
@@ -68,5 +69,15 @@ def register(request):
 
 
 @api_view(['POST'])
-def change_password():
+def change_password(request):
     return Response('change password')
+
+
+@swagger_auto_schema(methods=['GET'], responses={200: serializers.UserSerializer, 401: 'not authenticated'}, operation_description="Get data of the logged in user")
+@api_view(['GET'])
+def get_user_data(request):
+    if not isinstance(request.user, AnonymousUser):
+        user_data = serializers.UserSerializer(request.user).data
+        return Response(user_data)
+
+    return Response('not authenticated', status=401)
